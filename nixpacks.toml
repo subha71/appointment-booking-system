@@ -4,13 +4,13 @@ nixPkgs = ['nodejs', 'npm']
 [phases.install]
 cmds = [
   'cd backend && bundle install',
-  'cd frontend && npm install'
+  'cd frontend && npm install --production=false'
 ]
 
 [phases.build]
 cmds = [
-  'cd frontend && npm run build',
-  'mkdir -p backend/public',
+  'cd frontend && npm run build && cd ..',
+  'rm -rf backend/public/*',
   'cp -r frontend/dist/* backend/public/'
 ]
 
