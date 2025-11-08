@@ -25,10 +25,13 @@ class Appointment < ApplicationRecord
   def date_time_must_be_in_business_hours
     return unless date_time.present?
 
+    # Convert to local time zone for validation
+    local_time = date_time.in_time_zone
+
     # Business hours: Monday-Friday, 9 AM - 5 PM
-    day_of_week = date_time.wday
-    hour = date_time.hour
-    minute = date_time.min
+    day_of_week = local_time.wday
+    hour = local_time.hour
+    minute = local_time.min
 
     # Check if it's a weekday (1-5 represents Monday-Friday)
     unless (1..5).include?(day_of_week)
@@ -46,8 +49,11 @@ class Appointment < ApplicationRecord
   def date_time_must_be_30_minute_increment
     return unless date_time.present?
 
+    # Convert to local time zone for validation
+    local_time = date_time.in_time_zone
+
     # Check if minutes are either 0 or 30
-    unless [0, 30].include?(date_time.min)
+    unless [0, 30].include?(local_time.min)
       errors.add(:date_time, "must be in 30-minute increments (e.g., 9:00, 9:30)")
     end
   end
