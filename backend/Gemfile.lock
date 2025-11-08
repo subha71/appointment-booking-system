@@ -140,6 +140,9 @@ GEM
       racc (~> 1.4)
     nokogiri (1.17.2-x86_64-linux)
       racc (~> 1.4)
+    pg (1.6.2-aarch64-linux)
+    pg (1.6.2-arm64-darwin)
+    pg (1.6.2-x86_64-linux)
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
@@ -225,6 +228,7 @@ PLATFORMS
 DEPENDENCIES
   bootsnap
   debug
+  pg (~> 1.5)
   pry
   puma (>= 5.0)
   rack-cors

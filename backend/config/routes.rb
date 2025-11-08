@@ -16,6 +16,8 @@ Rails.application.routes.draw do
     end
   end
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # Catch-all route: Serve React frontend for all non-API routes
+  get '*path', to: 'application#fallback_index_html', constraints: ->(request) do
+    !request.xhr? && request.format.html?
+  end
 end
