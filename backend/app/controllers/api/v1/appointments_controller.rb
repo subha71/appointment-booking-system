@@ -63,8 +63,8 @@ module Api
             # Generate slots from 9:00 AM to 4:30 PM in 30-minute increments
             (9..16).each do |hour|
               [0, 30].each do |minute|
-                # Skip 5:00 PM slot (hour 17) and anything after 4:30 PM
-                next if hour == 16 && minute == 30
+                # Skip anything after 4:30 PM (don't include 5:00 PM)
+                next if hour == 16 && minute > 30
                 break if hour >= 17
 
                 slot_time = current_date.to_time.change(hour: hour, min: minute)
