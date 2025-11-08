@@ -67,7 +67,7 @@ module Api
                 next if hour == 16 && minute > 30
                 break if hour >= 17
 
-                slot_time = current_date.to_time.change(hour: hour, min: minute)
+                slot_time = Time.zone.local(current_date.year, current_date.month, current_date.day, hour, minute)
 
                 # Only include future slots and slots not already booked
                 if slot_time > Time.current && !booked_slots.include?(slot_time.to_i)
