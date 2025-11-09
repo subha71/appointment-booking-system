@@ -11,6 +11,7 @@ A full-stack web application for booking appointments with available time slots.
 - 🚫 Prevents double-booking
 - 🕐 IST (Indian Standard Time) timezone support
 - ✅ Full validation (business hours, no past dates, no weekends)
+- 🔐 HTTP Basic Authentication for security
 
 ## Tech Stack
 
@@ -197,6 +198,8 @@ Railway auto-configures most variables. Required ones:
 ```
 DATABASE_URL=auto_set_by_postgres_service (link via Variable Reference)
 SECRET_KEY_BASE=generate_with_rails_secret
+AUTH_USERNAME=your_username (for HTTP Basic Auth)
+AUTH_PASSWORD=your_secure_password (for HTTP Basic Auth)
 PORT=auto_set_by_railway
 RAILS_ENV=production (optional, defaults to production)
 ```
@@ -207,6 +210,9 @@ RAILS_ENV=production (optional, defaults to production)
 3. Click "Variable Reference" to link `DATABASE_URL` from Postgres service
 4. Generate `SECRET_KEY_BASE` locally: `bundle exec rails secret`
 5. Add `SECRET_KEY_BASE` with the generated value
+6. Add `AUTH_USERNAME` and `AUTH_PASSWORD` for HTTP Basic Authentication
+
+**Note:** The deployed application is protected with HTTP Basic Authentication. You will need to provide the username and password to access the live application.
 
 ### Build Process
 
