@@ -6,12 +6,13 @@ A full-stack web application for booking appointments with available time slots.
 
 - 📅 View available time slots for the week
 - ⏰ Book appointments (Monday-Friday, 9:00 AM - 4:30 PM, 30-minute intervals)
-- 📋 View all booked appointments
+- 📋 View all booked appointments with pagination (5 per page)
 - ❌ Cancel appointments
-- 🚫 Prevents double-booking
+- 🚫 Prevents double-booking with race condition protection
 - 🕐 IST (Indian Standard Time) timezone support
 - ✅ Full validation (business hours, no past dates, no weekends)
 - 🔐 HTTP Basic Authentication for security
+- 📧 Email normalization (case-insensitive storage)
 
 ## Tech Stack
 
@@ -99,7 +100,7 @@ Frontend runs at: http://localhost:3000
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/appointments` | Get all appointments |
+| GET | `/appointments` | Get all appointments (with pagination: `?page=1&per_page=5`) |
 | GET | `/appointments/available` | Get available time slots |
 | POST | `/appointments` | Create new appointment |
 | DELETE | `/appointments/:id` | Cancel appointment |
@@ -132,8 +133,10 @@ curl -X POST http://localhost:3001/api/v1/appointments \
 - **Restrictions:**
   - No appointments on weekends
   - No appointments in the past
-  - No double-booking (enforced by database constraint)
+  - No double-booking (enforced by database unique constraint + race condition handling)
   - Valid email format required
+  - Emails stored in lowercase to prevent duplicates (john@example.com = John@Example.COM)
+  - Past appointments cannot be cancelled (cancel button hidden)
 
 ## Testing
 
