@@ -3,7 +3,7 @@ class Appointment < ApplicationRecord
   validates :name, presence: true
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :phone, format: { with: /\A[+]?[\d\s\-()]+\z/, message: "must be a valid phone number" }, allow_blank: true
-  validates :date_time, presence: true
+  validates :date_time, presence: true, uniqueness: { message: "slot is already booked" }
   validates :reason, length: { maximum: 200 }
 
   validate :date_time_cannot_be_in_past

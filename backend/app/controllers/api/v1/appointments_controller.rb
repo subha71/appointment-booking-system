@@ -29,6 +29,10 @@ module Api
         else
           render json: { errors: @appointment.errors.full_messages }, status: :unprocessable_entity
         end
+      rescue ActiveRecord::RecordNotUnique
+        # Handle race condition: two users trying to book the same slot simultaneously
+        render json: { errors: ["This time slot has already been booked. Please choose another time."] },
+               status: :unprocessable_entity
       end
 
       # DELETE /api/v1/appointments/:id
