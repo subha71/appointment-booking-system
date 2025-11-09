@@ -92,7 +92,7 @@ Frontend runs at: http://localhost:3000
 
 ### Base URL
 - Development: `http://localhost:3001/api/v1`
-- Production: `https://yourapp.railway.app/api/v1`
+- Production: `https://appointment-booking-system-production-407b.up.railway.app/api/v1`
 
 ### Endpoints
 
@@ -192,28 +192,34 @@ Railway Server (Single Domain)
 
 ### Environment Variables
 
-Railway auto-configures most variables. Optional ones:
+Railway auto-configures most variables. Required ones:
 
 ```
-DATABASE_URL=auto_set_by_postgres_service
-RAILS_ENV=production
-RAILS_MASTER_KEY=copy_from_backend/config/master.key
+DATABASE_URL=auto_set_by_postgres_service (link via Variable Reference)
+SECRET_KEY_BASE=generate_with_rails_secret
 PORT=auto_set_by_railway
+RAILS_ENV=production (optional, defaults to production)
 ```
+
+**Setting up environment variables:**
+1. Add PostgreSQL database service in Railway
+2. In your Rails service, go to Variables tab
+3. Click "Variable Reference" to link `DATABASE_URL` from Postgres service
+4. Generate `SECRET_KEY_BASE` locally: `bundle exec rails secret`
+5. Add `SECRET_KEY_BASE` with the generated value
 
 ### Build Process
 
 The `Procfile` defines Railway's deployment steps:
 
 ```
-web: bundle exec rails server -p $PORT -e production
-release: bundle exec rails db:migrate && bash ../build-frontend.sh
+web: bundle exec rails db:migrate && bundle exec rails server -p $PORT -e production
 ```
 
-The `build-frontend.sh` script:
-1. Installs frontend dependencies
-2. Builds React for production
-3. Copies built files to Rails `public/` folder
+**Important Notes:**
+- Migrations run automatically on each deployment as part of the web process
+- React frontend must be pre-built and committed to `backend/public/` folder
+- Railway uses Railpack (not nixpacks), so migrations are in the web command
 
 ### Testing Production Build Locally
 
@@ -278,16 +284,28 @@ production:
 get '*path', to: 'application#fallback_index_html'
 ```
 
-**production.rb** - Serve static files
+**production.rb** - Serve static files and configure hosts
 ```ruby
 config.public_file_server.enabled = true
+config.hosts << "appointment-booking-system-production-407b.up.railway.app"
+```
+
+**application.rb** - Timezone configuration
+```ruby
+config.time_zone = "Kolkata"  # IST timezone
 ```
 
 ### Frontend
 
 **api.js** - Environment-aware API URLs
 ```javascript
-const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:3001';
+// Don't set VITE_API_URL in .env - let this automatic detection work:
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
+```
+
+**.env** - Keep empty for automatic environment detection
+```bash
+# Don't set VITE_API_URL here - it's auto-detected based on environment
 ```
 
 ## License
