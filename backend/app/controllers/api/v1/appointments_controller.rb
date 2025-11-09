@@ -5,8 +5,20 @@ module Api
 
       # GET /api/v1/appointments
       def index
-        @appointments = Appointment.all.order(:date_time)
-        render json: @appointments, status: :ok
+        page = params[:page] || 1
+        per_page = params[:per_page] || 5
+
+        @appointments = Appointment.order(:date_time).page(page).per(per_page)
+
+        render json: {
+          appointments: @appointments,
+          pagination: {
+            current_page: @appointments.current_page,
+            total_pages: @appointments.total_pages,
+            total_count: @appointments.total_count,
+            per_page: per_page.to_i
+          }
+        }, status: :ok
       end
 
       # GET /api/v1/appointments/available

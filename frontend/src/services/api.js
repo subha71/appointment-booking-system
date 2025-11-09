@@ -11,9 +11,11 @@ const api = axios.create({
 });
 
 export const appointmentsAPI = {
-  // Get all appointments
-  getAllAppointments: async () => {
-    const response = await api.get('/appointments');
+  // Get all appointments (with pagination)
+  getAllAppointments: async (page = 1, perPage = 5) => {
+    const response = await api.get('/appointments', {
+      params: { page, per_page: perPage }
+    });
     return response.data;
   },
 

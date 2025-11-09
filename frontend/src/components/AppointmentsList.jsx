@@ -3,21 +3,24 @@ import { appointmentsAPI } from '../services/api';
 
 const AppointmentsList = ({ refreshTrigger }) => {
   const [appointments, setAppointments] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cancelingId, setCancelingId] = useState(null);
 
   useEffect(() => {
-    fetchAppointments();
-  }, [refreshTrigger]);
+    fetchAppointments(currentPage);
+  }, [refreshTrigger, currentPage]);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = async (page = 1) => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await appointmentsAPI.getAllAppointments();
-      setAppointments(data);
+      const data = await appointmentsAPI.getAllAppointments(page);
+      setAppointments(data.appointments);
+      setPagination(data.pagination);
     } catch (err) {
       setError('Failed to load appointments. Please try again.');
       console.error('Error fetching appointments:', err);
@@ -99,63 +102,87 @@ const AppointmentsList = ({ refreshTrigger }) => {
           No appointments scheduled yet. Book your first appointment above!
         </p>
       ) : (
-        <div style={styles.list}>
-          {appointments.map((appointment) => {
-            const isPast = isPastAppointment(appointment.date_time);
+        <>
+          <div style={styles.list}>
+            {appointments.map((appointment) => {
+              const isPast = isPastAppointment(appointment.date_time);
 
-            return (
-              <div
-                key={appointment.id}
-                style={{
-                  ...styles.appointmentCard,
-                  ...(isPast ? styles.pastAppointment : {}),
-                }}
+              return (
+                <div
+                  key={appointment.id}
+                  style={{
+                    ...styles.appointmentCard,
+                    ...(isPast ? styles.pastAppointment : {}),
+                  }}
+                >
+                  <div style={styles.appointmentHeader}>
+                    <div style={styles.dateTime}>
+                      <strong>{formatDateTime(appointment.date_time)}</strong>
+                      {isPast && <span style={styles.pastBadge}>Past</span>}
+                    </div>
+                    {!isPast && (
+                      <button
+                        onClick={() => handleCancel(appointment.id)}
+                        style={styles.cancelButton}
+                        disabled={cancelingId === appointment.id}
+                      >
+                        {cancelingId === appointment.id ? 'Cancelling...' : 'Cancel'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={styles.appointmentDetails}>
+                    <div style={styles.detailRow}>
+                      <span style={styles.label}>Name:</span>
+                      <span style={styles.value}>{appointment.name}</span>
+                    </div>
+
+                    <div style={styles.detailRow}>
+                      <span style={styles.label}>Email:</span>
+                      <span style={styles.value}>{appointment.email}</span>
+                    </div>
+
+                    {appointment.phone && (
+                      <div style={styles.detailRow}>
+                        <span style={styles.label}>Phone:</span>
+                        <span style={styles.value}>{appointment.phone}</span>
+                      </div>
+                    )}
+
+                    {appointment.reason && (
+                      <div style={styles.detailRow}>
+                        <span style={styles.label}>Reason:</span>
+                        <span style={styles.value}>{appointment.reason}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {pagination && pagination.total_pages > 1 && (
+            <div style={styles.pagination}>
+              <button
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                style={currentPage === 1 ? styles.paginationButtonDisabled : styles.paginationButton}
               >
-                <div style={styles.appointmentHeader}>
-                  <div style={styles.dateTime}>
-                    <strong>{formatDateTime(appointment.date_time)}</strong>
-                    {isPast && <span style={styles.pastBadge}>Past</span>}
-                  </div>
-                  {!isPast && (
-                    <button
-                      onClick={() => handleCancel(appointment.id)}
-                      style={styles.cancelButton}
-                      disabled={cancelingId === appointment.id}
-                    >
-                      {cancelingId === appointment.id ? 'Cancelling...' : 'Cancel'}
-                    </button>
-                  )}
-                </div>
-
-                <div style={styles.appointmentDetails}>
-                  <div style={styles.detailRow}>
-                    <span style={styles.label}>Name:</span>
-                    <span style={styles.value}>{appointment.name}</span>
-                  </div>
-
-                  <div style={styles.detailRow}>
-                    <span style={styles.label}>Email:</span>
-                    <span style={styles.value}>{appointment.email}</span>
-                  </div>
-
-                  {appointment.phone && (
-                    <div style={styles.detailRow}>
-                      <span style={styles.label}>Phone:</span>
-                      <span style={styles.value}>{appointment.phone}</span>
-                    </div>
-                  )}
-
-                  {appointment.reason && (
-                    <div style={styles.detailRow}>
-                      <span style={styles.label}>Reason:</span>
-                      <span style={styles.value}>{appointment.reason}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                ← Previous
+              </button>
+              <span style={styles.pageInfo}>
+                Page {pagination.current_page} of {pagination.total_pages} ({pagination.total_count} total)
+              </span>
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === pagination.total_pages}
+                style={currentPage === pagination.total_pages ? styles.paginationButtonDisabled : styles.paginationButton}
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -280,6 +307,37 @@ const styles = {
   },
   value: {
     color: '#6b7280',
+  },
+  pagination: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '15px',
+    marginTop: '25px',
+    paddingTop: '20px',
+    borderTop: '1px solid #e5e7eb',
+  },
+  paginationButton: {
+    padding: '8px 16px',
+    backgroundColor: '#6366f1',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+  },
+  paginationButtonDisabled: {
+    padding: '8px 16px',
+    backgroundColor: '#d1d5db',
+    color: '#9ca3af',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'not-allowed',
+    fontSize: '14px',
+  },
+  pageInfo: {
+    color: '#6b7280',
+    fontSize: '14px',
   },
 };
 
