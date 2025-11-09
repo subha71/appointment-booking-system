@@ -1,4 +1,7 @@
 class Appointment < ApplicationRecord
+  # Callbacks
+  before_save { self.email = email.downcase }
+
   # Validations
   validates :name, presence: true
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
